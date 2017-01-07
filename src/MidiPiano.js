@@ -14,6 +14,7 @@ var MidiPiano = MidiPiano || {};
 	//Altspace stuff
 	var spaceName = '';
 	var spaceSID = '';
+	var mobile = /mobile/i.test(navigator.userAgent);
 	
 	var skeleton;
 	
@@ -33,6 +34,8 @@ var MidiPiano = MidiPiano || {};
 	var blackPosOffset = 3;
 	var prevKey = '';
 	var prevRotation = false;
+	var whiteKeyGeometry;
+	var blackKeyGeometry;
 
 	//Piano
 	var piano;
@@ -150,6 +153,23 @@ var MidiPiano = MidiPiano || {};
 		zPos = (zPos * scale)  / 3;
 		blackPosOffset = 1.5 * scale;
 	}
+
+	function initializeApp(connection, trackingSkeleton)
+	{
+		if (trackingSkeleton) {
+			skeleton = trackingSkeleton;
+			scene.add(skeleton);
+		}
+
+		console.log("Connected to Firebase!");
+		instanceData = connection.instance.child('data');
+		instanceUsers = connection.instance.child('users');
+		
+		instanceData.child('name').set(spaceName);
+		
+		console.log("Initalizing Piano....");
+		initalizePiano();
+	}
 	
 	function setupApp(connection)
 	{
@@ -163,20 +183,16 @@ var MidiPiano = MidiPiano || {};
 
 			loadMidi(function () {
 				configureMIDI();
-				altspace.getThreeJSTrackingSkeleton().then(function(trackingSkeleton) 
+				if (mobile) 
 				{
-					skeleton = trackingSkeleton;
-					scene.add(skeleton);
-
-					console.log("Connected to Firebase!");
-					instanceData = connection.instance.child('data');
-					instanceUsers = connection.instance.child('users');
-					
-					instanceData.child('name').set(spaceName);
-					
-					console.log("Initalizing Piano....");
-					initalizePiano();
-				});
+					initializeApp(connection);
+				} 
+				else
+				{
+					altspace.getThreeJSTrackingSkeleton().then(function (trackingSkeleton) {
+						initializeApp(connection, trackingSkeleton);
+					});
+				}
 			});
 		});
 	}
@@ -383,11 +399,13 @@ var MidiPiano = MidiPiano || {};
 		{
 			if (prevKey == 'W') { xPos += whiteDistance; } else { xPos += blackDistance; }
 			
-			var geometry = new THREE.BoxGeometry(2.68, 5.83, 17.5);
-			//var geometry = new THREE.BoxGeometry(0.23, 0.5, 1.5);
-			
-			// 1.5 / 2 gets edge of mesh.
-			geometry.translate( 0, 0, 8.75 );
+			if (!whiteKeyGeometry) 
+			{
+				whiteKeyGeometry = new THREE.BoxGeometry(2.68, 5.83, 17.5);
+				whiteKeyGeometry.name = 'whiteKeyGeometry';
+				// 1.5 / 2 gets edge of mesh.
+				whiteKeyGeometry.translate( 0, 0, 8.75 );
+			}
 
 			var materialCreator = new THREE.MTLLoader.MaterialCreator();
 			materialCreator.crossOrigin = 'anonymous';
@@ -395,7 +413,7 @@ var MidiPiano = MidiPiano || {};
 			var texture1 = materialCreator.loadTexture(url1);
 			var material = new THREE.MeshBasicMaterial({color:'#FFFFFF', map: texture1});
 			
-			keyObjects[i] = new THREE.Mesh(geometry, material);
+			keyObjects[i] = new THREE.Mesh(whiteKeyGeometry, material);
 			
 			keyObjects[i].scale.set(scale, scale , scale);
 			keyObjects[i].position.set(xPos,yPos,zPos);
@@ -404,54 +422,50 @@ var MidiPiano = MidiPiano || {};
 		{
 			xPos += blackDistance;
 			
-			var geometry = new THREE.BoxGeometry(1.52, 6.07, 12.83);
-			//var geometry = new THREE.BoxGeometry(0.13, 0.52, 1.1);
+			if (!blackKeyGeometry) 
+			{
+				blackKeyGeometry = new THREE.BoxGeometry(1.52, 6.07, 12.83);
+				blackKeyGeometry.name = 'blackKeyGeometry';
+				blackKeyGeometry.translate( 0, 0,6.415 );
+			}
 			var material = new THREE.MeshBasicMaterial({color:'#000000'});
 			
-			geometry.translate( 0, 0,6.415 );
-			
-			keyObjects[i] = new THREE.Mesh(geometry, material);
+			keyObjects[i] = new THREE.Mesh(blackKeyGeometry, material);
 			
 			keyObjects[i].scale.set(scale, scale , scale);
 			keyObjects[i].position.set(xPos,yPos+blackPosOffset,zPos);
 		}
 		
 		keyData[i] = type;
-		
-		keyObjects[i].addBehavior(
-			altspace.utilities.behaviors.JointCollisionEvents({joints: [['Index', 'Right', 3], ['Index', 'Left', 3]], jointCubeSize: 0.1})
-		);
-		
-		keyObjects[i].addEventListener('jointcollisionenter', function(e) 
+
+		function playNote(i) 
 		{
-			if (!mute)
-			{
-				noteOn(i+21, 127);
-				instanceUsers.child(userID).child('notes').child(i+21).set([Math.random(), 127]);
-				
-				setTimeout(function()
-				{ 
-					noteOff(i+21, 0);
-					instanceUsers.child(userID).child('notes').child(i+21).set([0, 127]);
-				}, 300);
+			return function () {
+				if (!mute)
+				{
+					noteOn(i+21, 127);
+					instanceUsers.child(userID).child('notes').child(i+21).set([Math.random(), 127]);
+					
+					setTimeout(function()
+					{ 
+						noteOff(i+21, 0);
+						instanceUsers.child(userID).child('notes').child(i+21).set([0, 127]);
+					}, 300);
+				}
 			}
-		});
+		}
+		
+		if (!mobile) 
+		{
+			keyObjects[i].addBehavior(
+				altspace.utilities.behaviors.JointCollisionEvents({joints: [['Index', 'Right', 3], ['Index', 'Left', 3]], jointCubeSize: 0.1})
+			);
 			
+			keyObjects[i].addEventListener('jointcollisionenter', playNote(i));
+		}
+
 		//Keypress behavior for playable keys
-		keyObjects[i].addEventListener('cursordown', function() 
-		{
-			if (!mute)
-			{
-				noteOn(i+21, 127);
-				instanceUsers.child(userID).child('notes').child(i+21).set([Math.random(), 127]);
-				
-				setTimeout(function()
-				{ 
-					noteOff(i+21, 0);
-					instanceUsers.child(userID).child('notes').child(i+21).set([0, 127]);
-				}, 300);
-			}
-		});
+		keyObjects[i].addEventListener('cursordown', playNote(i));
 		
 		pianoGroup.add(keyObjects[i]);
 	}
@@ -468,8 +482,9 @@ var MidiPiano = MidiPiano || {};
 		/*
 		 *	Player Controls
 		 */
-		geometry = new THREE.BoxGeometry(3, 3, 3);		
-		var playBtn = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color:'#00ff00', map: texture1}));	
+		var buttonGeometry = new THREE.BoxGeometry(3, 3, 3);
+		buttonGeometry.name = 'buttonGeometry';
+		var playBtn = new THREE.Mesh(buttonGeometry, new THREE.MeshBasicMaterial({color:'#00ff00', map: texture1}));	
 		playBtn.scale.set(1, 1 , 1);
 		playBtn.position.set(0,5,0);
 		playCtrlGroup.add(playBtn);
@@ -489,8 +504,7 @@ var MidiPiano = MidiPiano || {};
 		playText.x = 5;
 		playBtn.add(playText);
 		
-		geometry = new THREE.BoxGeometry(3, 3, 3);
-		var nextBtn = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color:'#f0ff00', map: texture1}));	
+		var nextBtn = new THREE.Mesh(buttonGeometry, new THREE.MeshBasicMaterial({color:'#f0ff00', map: texture1}));	
 		nextBtn.scale.set(1, 1 , 1);
 		nextBtn.position.set(0,0,0);
 		playCtrlGroup.add(nextBtn);
@@ -505,8 +519,7 @@ var MidiPiano = MidiPiano || {};
 		var nextText = createText("Next", 5, -1.5, 0.5, 0, 25);
 		nextBtn.add(nextText);
 		
-		geometry = new THREE.BoxGeometry(3, 3, 3);
-		var stopBtn = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color:'#FF0000', map: texture1}));	
+		var stopBtn = new THREE.Mesh(buttonGeometry, new THREE.MeshBasicMaterial({color:'#FF0000', map: texture1}));	
 		stopBtn.scale.set(1, 1 , 1);
 		stopBtn.position.set(0,-5,0);
 		playCtrlGroup.add(stopBtn);
@@ -526,8 +539,7 @@ var MidiPiano = MidiPiano || {};
 		/*
 		 *	Volume Controls
 		 */
-		geometry = new THREE.BoxGeometry(3, 3, 3);
-		var muteBtn = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color:'#f0ff00', map: texture1}));	
+		var muteBtn = new THREE.Mesh(buttonGeometry, new THREE.MeshBasicMaterial({color:'#f0ff00', map: texture1}));	
 		muteBtn.scale.set(1, 1 , 1);
 		muteBtn.position.set(-70,0,0);
 		volCtrlGroup.add(muteBtn);
@@ -555,24 +567,21 @@ var MidiPiano = MidiPiano || {};
 			}
 		});
 		
-		geometry = new THREE.BoxGeometry(10, 1, 0);
-		var volLine = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color:'#9f9f9f', map: texture1}));	
-		volLine.scale.set(1, 1 , 1);
+		var volLine = new THREE.Group();
 		volLine.position.set(-55,-1,0);
-		volLine.visible = false;
 		volCtrlGroup.add(volLine);
 		
 		var volText = createText("Vol", 0, -4.5, 0.5, 0, 25);
 		volLine.add(volText);
 		
 		
+		var volBarGeometry = new THREE.BoxGeometry(0.8, 1, 2);
 		//Volume bars
 		//TODO: Fix scaling and positioning. Seems weird :/
 		for (var i = 0; i < 5; i++)
 		{
-			geometry = new THREE.BoxGeometry(0.8, i+1, 2);
-			ctrlObjects[i] = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color:'#f0ff00', map: texture1}));
-			ctrlObjects[i].scale.set(2,2,2);
+			ctrlObjects[i] = new THREE.Mesh(volBarGeometry, new THREE.MeshBasicMaterial({color:'#f0ff00', map: texture1}));
+			ctrlObjects[i].scale.set(2,i*2+2,2);
 			ctrlObjects[i].position.set(-4.2+(i*2), -0.5+(i+1), -0.5);
 			
 			volLine.add(ctrlObjects[i]);
@@ -881,6 +890,11 @@ var MidiPiano = MidiPiano || {};
 	main.update = function() 
 	{
 		TWEEN.update();
+
+		// We only use the behavior system for joint collision events, so don't bother on mobile
+		if (!mobile) {
+			scene.updateAllBehaviors();
+		}
 	}
 	
 	function addNativeText(theData)
@@ -890,12 +904,13 @@ var MidiPiano = MidiPiano || {};
 		
 		return mesh;
 	}
+
 	
+	var placeholderGeometry = new THREE.BoxGeometry(0.001, 0.001, 0.001);
+	var placeholderMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+	placeholderMaterial.visible = false;
 	function addNativeObject(type)
 	{
-		var placeholderGeometry = new THREE.BoxGeometry(0.001, 0.001, 0.001);
-		var placeholderMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
-		placeholderMaterial.visible = false;
 		
 		var mesh = new THREE.Mesh(placeholderGeometry, placeholderMaterial);	
 		

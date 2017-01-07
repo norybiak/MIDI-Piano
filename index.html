@@ -23,7 +23,7 @@
 
 		//Setup
 		var scene = new THREE.Scene();
-		var renderer = altspace.getThreeJSRenderer();
+		var renderer = altspace.getThreeJSRenderer({initialSerializationBufferSize: 230000});
 
 		var config = { position: {x: 0, y: -360, z: 0} };
 		MidiPiano.start(scene, config);
