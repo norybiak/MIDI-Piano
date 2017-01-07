@@ -315,8 +315,6 @@ MIDI.Player = MIDI.Player || {};
 				api = opts.api;
 			} else if (supports[hash.substr(1)]) {
 				api = hash.substr(1);
-			} else if (supports.webmidi) {
-				api = 'webmidi';
 			} else if (window.AudioContext || window.webkitAudioContext) { // Chrome
 				api = 'webaudio';
 			} 
