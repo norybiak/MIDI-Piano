@@ -5,15 +5,10 @@
 		<title>Midi Piano</title>
 		<script src="https://cdn.rawgit.com/mrdoob/three.js/r74/build/three.min.js"></script>
 		<script src="http://sdk.altvr.com/libs/altspace.js/0.28.1/altspace.min.js"></script>
-		<script src="http://sdk.altvr.com/libs/three.js/r73/examples/js/geometries/TextGeometry.js"></script>
-		<script src="http://sdk.altvr.com/libs/three.js/r73/examples/js/utils/FontUtils.js"></script>
-		<script src="http://sdk.altvr.com/libs/three.js/r73/examples/fonts/helvetiker_regular.typeface.js"></script>
-		<script src="http://sdk.altvr.com/libs/three.js/r73/examples/js/utils/GeometryUtils.js"></script>
-		
+	
 		<script src="https://cdn.rawgit.com/norybiak/UltimateLoader/v0.1.7/dist/UltimateLoader.min.js"></script>
 		
 		<script src="dist/MidiPiano.min.js"></script>
-
 	</head>
 	<body>
 		<script>
@@ -31,6 +26,7 @@
 		{
 			requestAnimationFrame(animate);
 			renderer.render(scene);
+			MidiPiano.update();
 		}
 
 		</script>

@@ -95,7 +95,7 @@ var MidiPiano = MidiPiano || {};
 		{
 			text: '',
 			fontSize: 10,//roughly a meter tall
-			width: 10,//in meters
+			width: 80,//in meters
 			height: 1,//in meters
 			horizontalAlign: 'middle',
 			verticalAlign: 'middle'
@@ -285,11 +285,11 @@ var MidiPiano = MidiPiano || {};
 			scene.add(pianoGroup);
 			
 			//text,y, z, rot, size (default 14)
-			var infoText1 = createText("Play me!", 0, 125, 67, 0, 50);
+			var infoText1 = createText("Play me!", 0, 125, 67, -18, 50);
 			piano.add(infoText1);
-			var infoText2 = createText("MIDI Keyboard?", 0, 118, 69, 0, 50);
+			var infoText2 = createText("MIDI Keyboard?", 0, 118, 69, -18, 50);
 			piano.add(infoText2);
-			var infoText3 = createText("Visit - norybiak.com/apps/piano -", 0, 114, 70, 0, 50);
+			var infoText3 = createText("Visit - norybiak.com/apps/piano -", 0, 114, 70, -18, 50);
 			piano.add(infoText3);
 					
 			//Sides that contain the keys on piano model
@@ -318,7 +318,7 @@ var MidiPiano = MidiPiano || {};
 			//Let's create the text!
 			for (i = 0; i < songs.length; i++) 
 			{
-				songs[i].text = createText(songs[i].title, 0, 100, 80.5, 0, 3);
+				songs[i].text = createText(songs[i].title, 0, 100, 80.5, 0, 50);
 				piano.add(songs[i].text);
 				songs[i].text.visible = false;
 			}
@@ -573,7 +573,7 @@ var MidiPiano = MidiPiano || {};
 		var data = { text: str, fontSize: size };
 		var textMesh = addNativeText(data);
 		textMesh.position.set(x, y, z+1);
-		textMesh.rotateY(rot * Math.PI / 180);
+		textMesh.rotateX(rot * Math.PI / 180);
 		
 		return textMesh;
 	}
