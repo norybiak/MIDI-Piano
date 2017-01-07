@@ -21,7 +21,8 @@ var srcFiles =
 
 gulp.task('compress', compress);
 
-gulp.task('watch', function() {
+gulp.task('watch', function() 
+{
 	gulp.watch(srcFiles, gulp.series('compress'));
 });
 
