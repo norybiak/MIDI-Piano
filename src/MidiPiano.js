@@ -33,6 +33,8 @@ var MidiPiano = MidiPiano || {};
 	var blackPosOffset = 3;
 	var prevKey = '';
 	var prevRotation = false;
+	var whiteKeyGeometry;
+	var blackKeyGeometry;
 
 	//Piano
 	var piano;
@@ -377,11 +379,12 @@ var MidiPiano = MidiPiano || {};
 		{
 			if (prevKey == 'W') { xPos += whiteDistance; } else { xPos += blackDistance; }
 			
-			var geometry = new THREE.BoxGeometry(2.68, 5.83, 17.5);
-			//var geometry = new THREE.BoxGeometry(0.23, 0.5, 1.5);
-			
-			// 1.5 / 2 gets edge of mesh.
-			geometry.translate( 0, 0, 8.75 );
+			if (!whiteKeyGeometry) 
+			{
+				whiteKeyGeometry = new THREE.BoxGeometry(2.68, 5.83, 17.5);
+				// 1.5 / 2 gets edge of mesh.
+				whiteKeyGeometry.translate( 0, 0, 8.75 );
+			}
 
 			var materialCreator = new THREE.MTLLoader.MaterialCreator();
 			materialCreator.crossOrigin = 'anonymous';
@@ -389,7 +392,7 @@ var MidiPiano = MidiPiano || {};
 			var texture1 = materialCreator.loadTexture(url1);
 			var material = new THREE.MeshBasicMaterial({color:'#FFFFFF', map: texture1});
 			
-			keyObjects[i] = new THREE.Mesh(geometry, material);
+			keyObjects[i] = new THREE.Mesh(whiteKeyGeometry, material);
 			
 			keyObjects[i].scale.set(scale, scale , scale);
 			keyObjects[i].position.set(xPos,yPos,zPos);
@@ -398,13 +401,14 @@ var MidiPiano = MidiPiano || {};
 		{
 			xPos += blackDistance;
 			
-			var geometry = new THREE.BoxGeometry(1.52, 6.07, 12.83);
-			//var geometry = new THREE.BoxGeometry(0.13, 0.52, 1.1);
+			if (!blackKeyGeometry) 
+			{
+				var blackKeyGeometry = new THREE.BoxGeometry(1.52, 6.07, 12.83);
+				blackKeyGeometry.translate( 0, 0,6.415 );
+			}
 			var material = new THREE.MeshBasicMaterial({color:'#000000'});
 			
-			geometry.translate( 0, 0,6.415 );
-			
-			keyObjects[i] = new THREE.Mesh(geometry, material);
+			keyObjects[i] = new THREE.Mesh(blackKeyGeometry, material);
 			
 			keyObjects[i].scale.set(scale, scale , scale);
 			keyObjects[i].position.set(xPos,yPos+blackPosOffset,zPos);
