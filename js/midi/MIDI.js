@@ -1144,7 +1144,6 @@ var stopAudio = function() {
 				var base64 = url.split(',')[1];
 				var buffer = Base64Binary.decodeArrayBuffer(base64);
 				ctx.decodeAudioData(buffer, onload, onerror);
-				console.log("Base64 string");
 			} else { // XMLHTTP buffer
 				var request = new XMLHttpRequest();
 				request.open('GET', url, true);
