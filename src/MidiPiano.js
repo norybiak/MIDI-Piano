@@ -151,57 +151,72 @@ var MidiPiano = MidiPiano || {};
 		blackPosOffset = 1.5 * scale;
 	}
 	
-	function setupApp() 
+	function setupApp(connection)
 	{
-		configureMIDI();
+		var promises = [alt.getUser(), alt.getEnclosure()];
+		Promise.all(promises).then(function (values) {
+			var user = values.shift();
+			setupUser(user);
+					
+			var enclosure = values.shift();
+			setupScale(enclosure);
+
+			loadMidi(function () {
+				configureMIDI();
+				altspace.getThreeJSTrackingSkeleton().then(function(trackingSkeleton) 
+				{
+					skeleton = trackingSkeleton;
+					scene.add(skeleton);
+
+					console.log("Connected to Firebase!");
+					instanceData = connection.instance.child('data');
+					instanceUsers = connection.instance.child('users');
+					
+					instanceData.child('name').set(spaceName);
+					
+					console.log("Initalizing Piano....");
+					initalizePiano();
+				});
+			});
+		});
+	}
+
+	function setupFirebase() 
+	{
 
 		if (altspace.inClient) 
 		{
-			var promises = [alt.getUser(), alt.getSpace(), alt.getEnclosure()];
-			Promise.all(promises).then(function(values) 
+			alt.getSpace().then(function(space) 
 			{
-				var user = values.shift();
-				setupUser(user);
-				
-				var space = values.shift();
 				spaceSID = space.sid;
 				spaceName = space.name;
-						
-				var enclosure = values.shift();
-				setupScale(enclosure);
 						
 				console.log("Connecting to Firebase....");
 				//Connect to Firebase
 				var config = { appId: "Midi Piano", instanceId: spaceSID, authorId: "NorybiaK", baseRefUrl: "midi-piano.firebaseio.com"};
 				alt.utilities.sync.connect(config).then(function (connection) 
 				{
-					altspace.getThreeJSTrackingSkeleton().then(function(trackingSkeleton) 
+					if (!location.search) 
 					{
-						skeleton = trackingSkeleton;
-						scene.add(skeleton);
+						// There isn't a firebase instance id in the query params yet. Return immediately so that
+						// the sync util can add the query param and reload the app
+						return;
+					}
 
-						console.log("Connected to Firebase!");
-						instanceData = connection.instance.child('data');
-						instanceUsers = connection.instance.child('users');
-						
-						instanceData.child('name').set(spaceName);
-						
-						console.log("Initalizing Piano....");
-						initalizePiano();
-					});
+					setupApp(connection);
 				});
 			});
 		}
 	}
 
-	function loadMidi() 
+	function loadMidi(callback) 
 	{
 		MIDI.loadPlugin
 		({
 			soundfontUrl: "assets/soundfont/",
 			targetFormat: "ogg",
 			instruments: "acoustic_grand_piano",
-			onsuccess: setupApp
+			onsuccess: callback
 		});
 	}
 
@@ -217,7 +232,8 @@ var MidiPiano = MidiPiano || {};
 			console.log("MidiPiano must be passed a scene! Exiting...");
 			return;	
 		}
-		loadMidi();
+
+		setupFirebase();
 	}
 	
 	function initalizePiano()
