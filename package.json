@@ -1,0 +1,15 @@
+{
+  "name": "midi-piano",
+  "version": "0.1.0",
+  "scripts": {
+    "compress": "gulp compress",
+    "watch": "gulp watch"
+  },
+  "devDependencies": {
+    "gulp": "github:gulpjs/gulp#e9e5ab7e70080e1bfb5650a4fdc4c8849e70b3e0",
+    "gulp-concat": "^2.6.1",
+    "gulp-uglify": "^2.0.0",
+    "gulp-util": "^3.0.8",
+    "pump": "^1.0.2"
+  }
+}
