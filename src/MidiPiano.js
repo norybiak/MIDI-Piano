@@ -366,6 +366,12 @@ var MidiPiano = MidiPiano || {};
 			initalizeInstance();
 			
 			console.log("Piano initalized!");
+
+			var loading = document.querySelector('.piano-loading');
+			if (loading) 
+			{
+				loading.style.display = 'none';
+			}
 		});
 	}
 	
