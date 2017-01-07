@@ -884,7 +884,11 @@ var MidiPiano = MidiPiano || {};
 	main.update = function() 
 	{
 		TWEEN.update();
-		scene.updateAllBehaviors();
+
+		// We only use the behavior system for joint collision events, so don't bother on mobile
+		if (!mobile) {
+			scene.updateAllBehaviors();
+		}
 	}
 	
 	function addNativeText(theData)
