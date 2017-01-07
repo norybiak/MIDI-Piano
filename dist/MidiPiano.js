@@ -14,6 +14,7 @@ var MidiPiano = MidiPiano || {};
 	//Altspace stuff
 	var spaceName = '';
 	var spaceSID = '';
+	var mobile = /mobile/i.test(navigator.userAgent);
 	
 	var skeleton;
 	
@@ -152,6 +153,23 @@ var MidiPiano = MidiPiano || {};
 		zPos = (zPos * scale)  / 3;
 		blackPosOffset = 1.5 * scale;
 	}
+
+	function initializeApp(connection, trackingSkeleton)
+	{
+		if (trackingSkeleton) {
+			skeleton = trackingSkeleton;
+			scene.add(skeleton);
+		}
+
+		console.log("Connected to Firebase!");
+		instanceData = connection.instance.child('data');
+		instanceUsers = connection.instance.child('users');
+		
+		instanceData.child('name').set(spaceName);
+		
+		console.log("Initalizing Piano....");
+		initalizePiano();
+	}
 	
 	function setupApp(connection)
 	{
@@ -165,20 +183,16 @@ var MidiPiano = MidiPiano || {};
 
 			loadMidi(function () {
 				configureMIDI();
-				altspace.getThreeJSTrackingSkeleton().then(function(trackingSkeleton) 
+				if (mobile) 
 				{
-					skeleton = trackingSkeleton;
-					scene.add(skeleton);
-
-					console.log("Connected to Firebase!");
-					instanceData = connection.instance.child('data');
-					instanceUsers = connection.instance.child('users');
-					
-					instanceData.child('name').set(spaceName);
-					
-					console.log("Initalizing Piano....");
-					initalizePiano();
-				});
+					initializeApp(connection);
+				} 
+				else
+				{
+					altspace.getThreeJSTrackingSkeleton().then(function (trackingSkeleton) {
+						initializeApp(connection, trackingSkeleton);
+					});
+				}
 			});
 		});
 	}
@@ -417,41 +431,35 @@ var MidiPiano = MidiPiano || {};
 		}
 		
 		keyData[i] = type;
-		
-		keyObjects[i].addBehavior(
-			altspace.utilities.behaviors.JointCollisionEvents({joints: [['Index', 'Right', 3], ['Index', 'Left', 3]], jointCubeSize: 0.1})
-		);
-		
-		keyObjects[i].addEventListener('jointcollisionenter', function(e) 
+
+		function playNote(i) 
 		{
-			if (!mute)
-			{
-				noteOn(i+21, 127);
-				instanceUsers.child(userID).child('notes').child(i+21).set([Math.random(), 127]);
-				
-				setTimeout(function()
-				{ 
-					noteOff(i+21, 0);
-					instanceUsers.child(userID).child('notes').child(i+21).set([0, 127]);
-				}, 300);
+			return function () {
+				if (!mute)
+				{
+					noteOn(i+21, 127);
+					instanceUsers.child(userID).child('notes').child(i+21).set([Math.random(), 127]);
+					
+					setTimeout(function()
+					{ 
+						noteOff(i+21, 0);
+						instanceUsers.child(userID).child('notes').child(i+21).set([0, 127]);
+					}, 300);
+				}
 			}
-		});
+		}
+		
+		if (!mobile) 
+		{
+			keyObjects[i].addBehavior(
+				altspace.utilities.behaviors.JointCollisionEvents({joints: [['Index', 'Right', 3], ['Index', 'Left', 3]], jointCubeSize: 0.1})
+			);
 			
+			keyObjects[i].addEventListener('jointcollisionenter', playNote(i));
+		}
+
 		//Keypress behavior for playable keys
-		keyObjects[i].addEventListener('cursordown', function() 
-		{
-			if (!mute)
-			{
-				noteOn(i+21, 127);
-				instanceUsers.child(userID).child('notes').child(i+21).set([Math.random(), 127]);
-				
-				setTimeout(function()
-				{ 
-					noteOff(i+21, 0);
-					instanceUsers.child(userID).child('notes').child(i+21).set([0, 127]);
-				}, 300);
-			}
-		});
+		keyObjects[i].addEventListener('cursordown', playNote(i));
 		
 		pianoGroup.add(keyObjects[i]);
 	}
@@ -876,6 +884,11 @@ var MidiPiano = MidiPiano || {};
 	main.update = function() 
 	{
 		TWEEN.update();
+
+		// We only use the behavior system for joint collision events, so don't bother on mobile
+		if (!mobile) {
+			scene.updateAllBehaviors();
+		}
 	}
 	
 	function addNativeText(theData)
