@@ -165,15 +165,20 @@ var MidiPiano = MidiPiano || {};
 
 			loadMidi(function () {
 				configureMIDI();
+				altspace.getThreeJSTrackingSkeleton().then(function(trackingSkeleton) 
+				{
+					skeleton = trackingSkeleton;
+					scene.add(skeleton);
 
-				console.log("Connected to Firebase!");
-				instanceData = connection.instance.child('data');
-				instanceUsers = connection.instance.child('users');
-				
-				instanceData.child('name').set(spaceName);
-				
-				console.log("Initalizing Piano....");
-				initalizePiano();
+					console.log("Connected to Firebase!");
+					instanceData = connection.instance.child('data');
+					instanceUsers = connection.instance.child('users');
+					
+					instanceData.child('name').set(spaceName);
+					
+					console.log("Initalizing Piano....");
+					initalizePiano();
+				});
 			});
 		});
 	}
