@@ -382,6 +382,7 @@ var MidiPiano = MidiPiano || {};
 			if (!whiteKeyGeometry) 
 			{
 				whiteKeyGeometry = new THREE.BoxGeometry(2.68, 5.83, 17.5);
+				whiteKeyGeometry.name = 'whiteKeyGeometry';
 				// 1.5 / 2 gets edge of mesh.
 				whiteKeyGeometry.translate( 0, 0, 8.75 );
 			}
@@ -403,7 +404,8 @@ var MidiPiano = MidiPiano || {};
 			
 			if (!blackKeyGeometry) 
 			{
-				var blackKeyGeometry = new THREE.BoxGeometry(1.52, 6.07, 12.83);
+				blackKeyGeometry = new THREE.BoxGeometry(1.52, 6.07, 12.83);
+				blackKeyGeometry.name = 'blackKeyGeometry';
 				blackKeyGeometry.translate( 0, 0,6.415 );
 			}
 			var material = new THREE.MeshBasicMaterial({color:'#000000'});
@@ -466,8 +468,9 @@ var MidiPiano = MidiPiano || {};
 		/*
 		 *	Player Controls
 		 */
-		geometry = new THREE.BoxGeometry(3, 3, 3);		
-		var playBtn = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color:'#00ff00', map: texture1}));	
+		var buttonGeometry = new THREE.BoxGeometry(3, 3, 3);
+		buttonGeometry.name = 'buttonGeometry';
+		var playBtn = new THREE.Mesh(buttonGeometry, new THREE.MeshBasicMaterial({color:'#00ff00', map: texture1}));	
 		playBtn.scale.set(1, 1 , 1);
 		playBtn.position.set(0,5,0);
 		playCtrlGroup.add(playBtn);
@@ -487,8 +490,7 @@ var MidiPiano = MidiPiano || {};
 		playText.x = 5;
 		playBtn.add(playText);
 		
-		geometry = new THREE.BoxGeometry(3, 3, 3);
-		var nextBtn = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color:'#f0ff00', map: texture1}));	
+		var nextBtn = new THREE.Mesh(buttonGeometry, new THREE.MeshBasicMaterial({color:'#f0ff00', map: texture1}));	
 		nextBtn.scale.set(1, 1 , 1);
 		nextBtn.position.set(0,0,0);
 		playCtrlGroup.add(nextBtn);
@@ -503,8 +505,7 @@ var MidiPiano = MidiPiano || {};
 		var nextText = createText("Next", 5, -1.5, 0.5, 0, 25);
 		nextBtn.add(nextText);
 		
-		geometry = new THREE.BoxGeometry(3, 3, 3);
-		var stopBtn = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color:'#FF0000', map: texture1}));	
+		var stopBtn = new THREE.Mesh(buttonGeometry, new THREE.MeshBasicMaterial({color:'#FF0000', map: texture1}));	
 		stopBtn.scale.set(1, 1 , 1);
 		stopBtn.position.set(0,-5,0);
 		playCtrlGroup.add(stopBtn);
@@ -524,8 +525,7 @@ var MidiPiano = MidiPiano || {};
 		/*
 		 *	Volume Controls
 		 */
-		geometry = new THREE.BoxGeometry(3, 3, 3);
-		var muteBtn = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color:'#f0ff00', map: texture1}));	
+		var muteBtn = new THREE.Mesh(buttonGeometry, new THREE.MeshBasicMaterial({color:'#f0ff00', map: texture1}));	
 		muteBtn.scale.set(1, 1 , 1);
 		muteBtn.position.set(-70,0,0);
 		volCtrlGroup.add(muteBtn);
@@ -553,24 +553,21 @@ var MidiPiano = MidiPiano || {};
 			}
 		});
 		
-		geometry = new THREE.BoxGeometry(10, 1, 0);
-		var volLine = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color:'#9f9f9f', map: texture1}));	
-		volLine.scale.set(1, 1 , 1);
+		var volLine = new THREE.Group();
 		volLine.position.set(-55,-1,0);
-		volLine.visible = false;
 		volCtrlGroup.add(volLine);
 		
 		var volText = createText("Vol", 0, -4.5, 0.5, 0, 25);
 		volLine.add(volText);
 		
 		
+		var volBarGeometry = new THREE.BoxGeometry(0.8, 1, 2);
 		//Volume bars
 		//TODO: Fix scaling and positioning. Seems weird :/
 		for (var i = 0; i < 5; i++)
 		{
-			geometry = new THREE.BoxGeometry(0.8, i+1, 2);
-			ctrlObjects[i] = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({color:'#f0ff00', map: texture1}));
-			ctrlObjects[i].scale.set(2,2,2);
+			ctrlObjects[i] = new THREE.Mesh(volBarGeometry, new THREE.MeshBasicMaterial({color:'#f0ff00', map: texture1}));
+			ctrlObjects[i].scale.set(2,i*2+2,2);
 			ctrlObjects[i].position.set(-4.2+(i*2), -0.5+(i+1), -0.5);
 			
 			volLine.add(ctrlObjects[i]);
@@ -888,12 +885,13 @@ var MidiPiano = MidiPiano || {};
 		
 		return mesh;
 	}
+
 	
+	var placeholderGeometry = new THREE.BoxGeometry(0.001, 0.001, 0.001);
+	var placeholderMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
+	placeholderMaterial.visible = false;
 	function addNativeObject(type)
 	{
-		var placeholderGeometry = new THREE.BoxGeometry(0.001, 0.001, 0.001);
-		var placeholderMaterial = new THREE.MeshBasicMaterial({ color: 0x000000 });
-		placeholderMaterial.visible = false;
 		
 		var mesh = new THREE.Mesh(placeholderGeometry, placeholderMaterial);	
 		
