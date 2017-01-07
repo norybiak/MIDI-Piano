@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang=en>
+	<head>
+		<meta charset=utf-8>
+		<title>Midi Piano</title>
+		<script src="https://cdn.rawgit.com/mrdoob/three.js/r74/build/three.min.js"></script>
+		<script src="http://sdk.altvr.com/libs/altspace.js/0.28.1/altspace.min.js"></script>
+		<script src="http://sdk.altvr.com/libs/three.js/r73/examples/js/geometries/TextGeometry.js"></script>
+		<script src="http://sdk.altvr.com/libs/three.js/r73/examples/js/utils/FontUtils.js"></script>
+		<script src="http://sdk.altvr.com/libs/three.js/r73/examples/fonts/helvetiker_regular.typeface.js"></script>
+		<script src="http://sdk.altvr.com/libs/three.js/r73/examples/js/utils/GeometryUtils.js"></script>
+		
+		<script src="https://cdn.rawgit.com/norybiak/UltimateLoader/v0.1.7/dist/UltimateLoader.min.js"></script>
+		
+		<script src="dist/MidiPiano.min.js"></script>
+
+	</head>
+	<body>
+		<script>
+
+		//Setup
+		var scene = new THREE.Scene();
+		var renderer = altspace.getThreeJSRenderer();
+
+		var config = { position: {x: 0, y: -360, z: 0} };
+		MidiPiano.start(scene, config);
+		animate();
+		
+		//Update & Rendering
+		function animate() 
+		{
+			requestAnimationFrame(animate);
+			renderer.render(scene);
+		}
+
+		</script>
+	</body>
+</html>
