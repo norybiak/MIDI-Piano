@@ -1,7 +1,6 @@
 var gulp = require('gulp');
 var concat = require('gulp-concat');
 var uglify = require('gulp-uglify');
-var gutil = require('gulp-util');
 var pump = require('pump');
 
 /** Config **/
@@ -29,11 +28,14 @@ gulp.task('watch', function()
 function compress(done) 
 {
 	pump([
-  
+		gulp.src(srcFiles),
+		concat('MidiPiano.js', {newLine: '\n'}),
+		gulp.dest('dist')
+	],
+	[
 		gulp.src(srcFiles),
 		uglify(),
 		concat('MidiPiano.min.js'),
 		gulp.dest('dist')
-		
-    ], done);
+	], done);
 }
