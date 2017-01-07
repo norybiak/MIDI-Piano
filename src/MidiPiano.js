@@ -884,6 +884,7 @@ var MidiPiano = MidiPiano || {};
 	main.update = function() 
 	{
 		TWEEN.update();
+		scene.updateAllBehaviors();
 	}
 	
 	function addNativeText(theData)
