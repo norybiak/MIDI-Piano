@@ -197,31 +197,38 @@ var MidiPiano = MidiPiano || {};
 		});
 	}
 
-	function setupFirebase() 
+	function setupFirebase(connection) 
 	{
 
 		if (altspace.inClient) 
 		{
-			alt.getSpace().then(function(space) 
+			if (!connection)
 			{
-				spaceSID = space.sid;
-				spaceName = space.name;
-						
-				console.log("Connecting to Firebase....");
-				//Connect to Firebase
-				var config = { appId: "Midi Piano", instanceId: spaceSID, authorId: "NorybiaK", baseRefUrl: "midi-piano.firebaseio.com"};
-				alt.utilities.sync.connect(config).then(function (connection) 
+				alt.getSpace().then(function(space) 
 				{
-					if (!location.search) 
+					spaceSID = space.sid;
+					spaceName = space.name;
+							
+					console.log("Connecting to Firebase....");
+					//Connect to Firebase
+					var config = { appId: "Midi Piano", instanceId: spaceSID, authorId: "NorybiaK", baseRefUrl: "midi-piano.firebaseio.com"};
+					alt.utilities.sync.connect(config).then(function (connection) 
 					{
-						// There isn't a firebase instance id in the query params yet. Return immediately so that
-						// the sync util can add the query param and reload the app
-						return;
-					}
+						if (!location.search) 
+						{
+							// There isn't a firebase instance id in the query params yet. Return immediately so that
+							// the sync util can add the query param and reload the app
+							return;
+						}
 
-					setupApp(connection);
+						setupApp(connection);
+					});
 				});
-			});
+			}
+			else 
+			{
+				setupApp(connection);
+			}
 		}
 	}
 
@@ -240,6 +247,7 @@ var MidiPiano = MidiPiano || {};
 	main.start = function(s, config)
 	{
 		scene = s || false;
+		var connection = config.connection || false;
 		pianoPosition = config.position || {x: 0, y: 0, z: 0};
 		pianoRotation = config.rotation || {x: 0, y: 0, z: 0};
 		
@@ -249,7 +257,7 @@ var MidiPiano = MidiPiano || {};
 			return;	
 		}
 
-		setupFirebase();
+		setupFirebase(connection);
 	}
 	
 	function initalizePiano()
