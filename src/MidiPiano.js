@@ -382,10 +382,7 @@ var MidiPiano = MidiPiano || {};
 				piano.add(songs[i].text);
 				songs[i].text.visible = false;
 			}
-			
-			//Okay, we know the model is loaded now...so let's animate
-			animate();
-			
+					
 			//Had to move this here since the model wasn't loading before Firebase instance
 			initalizeInstance();
 			
